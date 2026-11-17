@@ -11,6 +11,7 @@ use bstr::{ByteSlice, ByteVec, io::BufReadExt};
 use futures::{FutureExt, StreamExt, TryStreamExt};
 use harmonia_file_nar::{NarEvent, parse_nar};
 use hyperscan::{Builder, DatabaseRef, Matching, StreamingDatabase, StreamingMode, pattern};
+use reqwest::Response;
 use tokio::{
     io::AsyncRead,
     signal::unix::{Signal, SignalKind},
@@ -41,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // The regex that is being scanned for. The FSM is shared across
     // all tasks.
     let ref scanning_db: StreamingDatabase =
-        hyperscan::pattern! { r##"Electron/[0-9]*\.[0-9]*\.[0-9]*"##; SOM_LEFTMOST }
+        hyperscan::pattern! { r##"zb8v9bznxmf16znazwzdmksf8lbishbj"##; SOM_LEFTMOST }
             .build()
             .unwrap();
 
@@ -60,7 +61,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(async move |name| {
             let digest = path_to_digest(&name);
 
-            let narinfo = match narinfo::get_narinfo(client, &digest).await {
+            let narinfo = match narinfo::get_narinfo(client, &digest)
+                .await
+                .map(Response::error_for_status)
+                .flatten()
+            {
                 Ok(res) => match res.text().await {
                     Ok(info) => info,
                     Err(err) => {
