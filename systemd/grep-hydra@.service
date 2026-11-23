@@ -1,9 +1,9 @@
 [Unit]
-Description=Lintnar worker
+Description=grep-hydra worker
 After=network.target
 
 [Service]
-ExecStart=/bin/lintnar
+ExecStart=/bin/grep-hydra
 IPAddressDeny=any
 LockPersonality=yes
 MemoryDenyWriteExecute=yes
@@ -36,8 +36,8 @@ RestrictNamespaces=true
 SystemCallArchitectures=native
 SystemCallErrorNumber=EPERM
 SystemCallFilter=@network-io
-RuntimeDirectory=lintnar
-RootDirectory=/run/lintnar
+RuntimeDirectory=grep-hydra
+RootDirectory=/run/grep-hydra
 DynamicUser=true
 Type=simple
 

@@ -1,6 +1,6 @@
-# Lintnar
+# grep-hydra
 
-Lint NAR files or something. Reads them without loading the entire archives into memory at once, or placing them into the nix store. Then just scan them for whatever.
+grep the Hydra cache. Reads them without loading the entire archives into memory at once, so it's relatively constant memory.
 
 Works well. On my good computer it took 2 hours and 15 minutes to scan all NAR archives of a recent unstable. This is 820 (compressed) GiB over 217126 store paths.
 
@@ -8,11 +8,11 @@ Works well. On my good computer it took 2 hours and 15 minutes to scan all NAR a
 
 Pass store paths via stdin.
 
-- `curl curl -sfL https://channels.nixos.org/nixos-unstable/store-paths.xz | xz -d | lintnar`
+- `curl curl -sfL https://channels.nixos.org/nixos-unstable/store-paths.xz | xz -d | grep-hydra`
 
 How I use it:
 
-- `systemd-run --user -p StandardInput=file:store-paths.txt result/bin/lintnar`
+- `systemd-run --user -p StandardInput=file:store-paths.txt result/bin/grep-hydra`
 
 It will then run in the background. Take note of the service name, or set it in the above invocation. Once it is done:
 

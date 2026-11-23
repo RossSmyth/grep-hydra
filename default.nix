@@ -15,7 +15,7 @@ let
     ;
 in
 rustPlatform.buildRustPackage {
-  pname = "lintnar";
+  pname = "grep-hydra";
   version = "0.1.0";
 
   __strucutredAttrs = true;
@@ -57,6 +57,6 @@ rustPlatform.buildRustPackage {
 
   meta = {
     license = lib.licenses.blueOak100;
-    mainProgram = "cranar";
+    mainProgram = "grep-hydra";
   };
 }

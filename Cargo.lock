@@ -550,6 +550,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "grep-hydra"
+version = "0.1.0"
+dependencies = [
+ "async-compression",
+ "bstr",
+ "futures",
+ "harmonia-file-nar",
+ "hyperscan",
+ "reqwest",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
 name = "h2"
 version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1011,20 +1025,6 @@ dependencies = [
  "cc",
  "libc",
  "pkg-config",
-]
-
-[[package]]
-name = "lintnar"
-version = "0.1.0"
-dependencies = [
- "async-compression",
- "bstr",
- "futures",
- "harmonia-file-nar",
- "hyperscan",
- "reqwest",
- "tokio",
- "tokio-util",
 ]
 
 [[package]]

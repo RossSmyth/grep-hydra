@@ -1,0 +1,11 @@
+[Unit]
+Description=grep-hydra working socket
+Before=multi-user.target
+
+[Socket]
+ListenSequentialPacket=/run/grep-hydra/socket.sock
+SocketMode=0660
+DirectoryMode=750
+Accept=yes
+MaxConnections=1
+SocketGroup=grep-hydra
