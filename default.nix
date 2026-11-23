@@ -1,18 +1,19 @@
 {
   system ? builtins.currentSystem or "x86_64-linux",
-  inputs ? import ./npins { },
-  pkgs ? import inputs.nixpkgs { inherit system; },
+  pkgs ? import (import ./npins).nixpkgs { inherit system; },
 }:
 let
   inherit (pkgs)
+    callPackage
     rustPlatform
     lib
     pkg-config
     zstd
     aws-lc
-    hyperscan
     xz
     ;
+
+  hyperscan = callPackage ./nix/hyperscan.nix { };
 in
 rustPlatform.buildRustPackage {
   pname = "grep-hydra";
@@ -51,7 +52,7 @@ rustPlatform.buildRustPackage {
   cargoLock = {
     lockFile = ./Cargo.lock;
     outputHashes = {
-      "harmonia-file-core-3.3.0" = "sha256-sJzjr2074ecIZQazleb1yTpbU2o+gYW6P5FYu9W2M0E=";
+      "harmonia-file-core-3.3.0" = "sha256-KdCp0zdmoEptO9W/xhm9SpMVjqy3c96hVcsWPxDctqg=";
     };
   };
 
