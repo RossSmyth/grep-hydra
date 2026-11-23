@@ -1,3 +1,4 @@
+# Vendored: https://github.com/NixOS/nixpkgs/blob/0dc498bfe49baeb18b0f9891e800b53bb2603193/pkgs/development/python-modules/hyperscan/default.nix#L66
 {
   lib,
   stdenv,
@@ -91,4 +92,6 @@ stdenv.mkDerivation (finalAttrs: {
 
     runHook postCheck
   '';
+
+  meta.platforms = lib.platforms.x86_64;
 })
