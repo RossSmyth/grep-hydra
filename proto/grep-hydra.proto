@@ -1,0 +1,148 @@
+syntax = "proto3";
+edition = "2026";
+
+option java_multiple_files = true;
+option java_package = "net.rsmyth.grep-hydra";
+option java_outer_classname = "GrepHydraProto";
+
+package grephydra
+
+service GrepHydra {
+  // A scanning session. Client sends messages, server returns results.
+  rpc StreamingSession(stream ClientMessage) returns (stream ServerMessage) {}
+}
+
+message ClientMessage {
+  oneof message {
+    // Format like `/nix/store/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-foo-1.0.0`
+    //
+    // This queues it to scan. It will only be scanned by regex that have been
+    // registered so far. If none are registered, nothing will be scanned for.
+    //
+    // Note that symlinks are never followed, but the path that they represent is scanned.
+    string store_path = 1;
+
+    // Register a Hyperscan regex to scan for in the store paths.
+    // 
+    // Each regex sent has an implicit index. The first sent is zero,
+    // the Nth sent is (N-1).
+    //
+    // Regex cannot be removed. If an invalid regex if sent, the entire
+    // sessions is cancelled and a finished message is sent.
+    //
+    // It is recommended to send all regex at first, then send paths to scan.
+    // If this is not done, not all paths may be scanned by all the regexes.
+    //
+    // It is recommended that clients enforce this.
+    string add_regex = 2;
+
+    // Cancel a scan on the server.
+    //
+    // This will close the stream as soon as clean-up is finished.
+    Cancel cancel_scan = 3;
+  }
+}
+
+message ServerMessage {
+  oneof result {
+    // May be returned for a store path that has been queued.
+    PathSuccess path_success = 1;
+    // May be returned for a store path that has been queued
+    PathError path_error = 2;
+
+    // Returned when a regex is registered.
+    RegexRegisteredOk regex_success = 3;
+    RegexRegisteredErr regex_error = 4;
+
+    // Returned once for a given session. After being sent, the
+    // stream is terminated from the server side.
+    GrepFinished finished = 5;
+
+  }
+}
+
+message Cancel {}
+
+// A match of the regex
+//
+// Does not return the match itself, that must be done
+// later with a block match. This is because a streaming match
+// may not have a whole match in memory at once.
+message Match {
+  // The zero-based index of the regex scanned.
+  uint32 regex_id = 1;
+
+  // The full store path matched
+  //
+  // Format like `/nix/store/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-foo-1.0.0/bin/thing`
+  string path = 2;
+}
+
+message PathSuccess {
+  // The store path searched
+  //
+  // Format of `/nix/store/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-foo-1.0.0`
+  string StorePath = 1;
+
+  // The matches found in the store path.
+  repeat Match matches = 2;
+}
+
+message PathError {
+  // The store path attempted to be searched.
+  // 
+  // Format of `/nix/store/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-foo-1.0.0`
+  string StorePath = 1;
+
+  // Error
+  enum ErrorCode {
+    SOMETHING = 1;
+  }
+  ErrorCode code = 2;
+  
+  // Context
+  //
+  // Some stringy message.
+  // Will probably be printed to the user.
+  string context = 3;
+}
+
+// The final message sent.
+//
+// This message will always be sent by the server before
+// disconnect (if possible). But the client should not
+// rely on it due to network failures.
+//
+// This will show the accumulated regex scanned.
+message GrepFinish {
+  // Total number of store paths scanned.
+  // May not be in order of what was sent due to parallelism.
+  // Meaning that if it return 5 paths scanned, the fifth path
+  // is not guarenteeed to have been scanned. The only guarenteed
+  // of a path being scanned is the success/error message of a path.
+  uint64 paths_scanned = 1;
+
+  // Total number of store paths with matches.
+  //
+  // These generally represent a path that must be pulled locally for block scanning
+  // to read out the matched value.
+  //
+  // This value is not the files matches, but rather the top-level paths that matched.
+  // So the number of matches returned in accumulated GrepSuccess messages may be more
+  // than this number, but this number will never be more than paths_scanned.
+  uint64 total_matches = 2;
+
+  // The regex scanned over the session.
+  //
+  // The list of regex scanned of the course of the session.
+  repeat string regex_scanned = 3;
+}
+
+message RegexRegisteredOk {
+  string regex = 1;
+}
+
+message RegexRegisteredErr {
+  string regex = 1;
+  string context = 2;
+}
